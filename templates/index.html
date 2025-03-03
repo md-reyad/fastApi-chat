@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Interface</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/styles.css" rel="stylesheet">
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="mb-0">Chat Interface</h3>
+                    </div>
+                    <div class="card-body chat-container" id="chatContainer">
+                        <!-- Chat messages will appear here -->
+                        <div class="chat-messages" id="chatMessages">
+                            <div class="message bot-message">
+                                <div class="message-content">
+                                    Hello! How can I help you today?
+                                </div>
+                            </div>
+                            
+                            {% if show_message %}
+                            <div class="message user-message">
+                                <div class="message-content">
+                                    {{ user_message }}
+                                </div>
+                            </div>
+                            
+                            <div class="message bot-message">
+                                <div class="message-content">
+                                    {{ bot_response }}
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <form id="chatForm">
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="messageInput" name="message" 
+                                       placeholder="Type your message here..." required>
+                                <button type="submit" class="btn btn-primary">Send</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        $(document).ready(function() {
+            // Function to add a message to the chat
+            function addMessage(message, isUser = false) {
+                const messageDiv = $('<div>').addClass(isUser ? 'message user-message' : 'message bot-message');
+                
+                if (!isUser) {
+                    // Format the bot message with HTML
+                    const formattedMessage = formatBotMessage(message);
+                    const contentDiv = $('<div>').addClass('message-content').html(formattedMessage);
+                    
+                    // Add "Read More" functionality for long messages
+                    if (message.length > 800) {
+                        contentDiv.addClass('long-message collapsed');
+                        
+                        // Add expand/collapse button
+                        const expandButton = $('<button>')
+                            .addClass('expand-button')
+                            .text('Read More')
+                            .click(function() {
+                                if (contentDiv.hasClass('collapsed')) {
+                                    contentDiv.removeClass('collapsed');
+                                    $(this).text('Show Less');
+                                } else {
+                                    contentDiv.addClass('collapsed');
+                                    $(this).text('Read More');
+                                }
+                                scrollToBottom();
+                            });
+                        
+                        messageDiv.append(contentDiv).append(expandButton);
+                    } else {
+                        messageDiv.append(contentDiv);
+                    }
+                } else {
+                    // User messages remain as plain text
+                    const contentDiv = $('<div>').addClass('message-content').text(message);
+                    messageDiv.append(contentDiv);
+                }
+                
+                $('#chatMessages').append(messageDiv);
+                scrollToBottom();
+            }
+            
+            // Function to format bot messages with HTML
+            function formatBotMessage(text) {
+                // Basic HTML conversion
+                let html = '';
+                
+                // Split by double newlines (paragraphs)
+                const paragraphs = text.split(/\n\n+/);
+                
+                paragraphs.forEach(paragraph => {
+                    paragraph = paragraph.trim();
+                    if (!paragraph) return;
+                    
+                    // Check if this is a heading (ends with colon)
+                    if (/^[^:]+:$/.test(paragraph)) {
+                        html += `<h4>${paragraph}</h4>`;
+                        return;
+                    }
+                    
+                    // Check if this is a bullet list
+                    if (paragraph.includes('\n- ') || paragraph.includes('\n• ')) {
+                        const listItems = paragraph.split(/\n[•\-] /);
+                        const firstLine = listItems.shift();
+                        
+                        if (firstLine) {
+                            html += `<p>${firstLine}</p>`;
+                        }
+                        
+                        html += '<ul>';
+                        listItems.forEach(item => {
+                            if (item.trim()) {
+                                html += `<li>${item.trim()}</li>`;
+                            }
+                        });
+                        html += '</ul>';
+                        return;
+                    }
+                    
+                    // Check if this is a numbered list
+                    if (/\n\d+[.)] /.test(paragraph)) {
+                        const listItems = paragraph.split(/\n\d+[.)] /);
+                        const firstLine = listItems.shift();
+                        
+                        if (firstLine) {
+                            html += `<p>${firstLine}</p>`;
+                        }
+                        
+                        html += '<ol>';
+                        listItems.forEach(item => {
+                            if (item.trim()) {
+                                html += `<li>${item.trim()}</li>`;
+                            }
+                        });
+                        html += '</ol>';
+                        return;
+                    }
+                    
+                    // Regular paragraph with line breaks
+                    const lines = paragraph.split('\n');
+                    html += '<p>' + lines.join('<br>') + '</p>';
+                });
+                
+                // Bold important terms
+                const terms = [
+                    'FundedNext', 'Evaluation Challenge', 'Express Challenge', 'Stellar', 
+                    'Profit Share', 'Payout', 'Phase 1', 'Phase 2', 'FundedNext Account',
+                    'Trade Master Cup', 'Reset', 'Refund Policy'
+                ];
+                
+                terms.forEach(term => {
+                    const regex = new RegExp('\\b' + term + '\\b', 'g');
+                    html = html.replace(regex, `<strong>${term}</strong>`);
+                });
+                
+                return html;
+            }
+            
+            // Function to show loading indicator
+            function showLoading() {
+                const loadingDiv = $('<div>').addClass('message bot-message loading').attr('id', 'loadingMessage');
+                const contentDiv = $('<div>').addClass('message-content').text('Typing...');
+                
+                loadingDiv.append(contentDiv);
+                $('#chatMessages').append(loadingDiv);
+                
+                // Scroll to the bottom
+                scrollToBottom();
+            }
+            
+            // Function to remove loading indicator
+            function removeLoading() {
+                $('#loadingMessage').remove();
+            }
+            
+            // Function to scroll to bottom of chat
+            function scrollToBottom() {
+                const chatContainer = $('#chatContainer');
+                chatContainer.scrollTop(chatContainer[0].scrollHeight);
+            }
+            
+            // Handle form submission
+            $('#chatForm').submit(function(e) {
+                e.preventDefault();
+                
+                const messageInput = $('#messageInput');
+                const message = messageInput.val().trim();
+                
+                if (!message) return;
+                
+                // Add user message to chat
+                addMessage(message, true);
+                
+                // Clear input field
+                messageInput.val('');
+                
+                // Show loading indicator
+                showLoading();
+                
+                // Create FormData object
+                const formData = new FormData();
+                formData.append('message', message);
+                
+                // Send message to server using jQuery AJAX
+                $.ajax({
+                    url: '/chat',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,  // Important: prevent jQuery from processing the data
+                    contentType: false,  // Important: prevent jQuery from setting content type
+                    success: function(data) {
+                        // Remove loading indicator
+                        removeLoading();
+                        
+                        // Add bot response to chat with formatting
+                        addMessage(data.response);
+                    },
+                    error: function(xhr, status, error) {
+                        // Remove loading indicator
+                        removeLoading();
+                        
+                        // Log detailed error information
+                        console.error('Error Status:', status);
+                        console.error('Error Message:', error);
+                        console.error('Response Text:', xhr.responseText);
+                        
+                        // Handle error
+                        addMessage('Sorry, there was an error processing your request. Check console for details.', false);
+                    }
+                });
+            });
+            
+            // Scroll to the bottom of the chat container when the page loads
+            scrollToBottom();
+        });
+    </script>
+</body>
+</html> 
