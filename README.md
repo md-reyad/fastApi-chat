@@ -29,6 +29,9 @@ A robust web application built with FastAPI that provides data processing capabi
    ```bash
    python -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
+   # Or
+   . venv/bin/activate.fish # For fish shell
+
    ```
 
 3. Install dependencies:
