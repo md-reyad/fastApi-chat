@@ -1,4 +1,4 @@
-# FastAPI Web Application
+# FastAPI Web Application for Chat
 
 A robust web application built with FastAPI that provides data processing capabilities, database integration, and a question-answering system.
 
@@ -21,8 +21,8 @@ A robust web application built with FastAPI that provides data processing capabi
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/your-repo-name.git
-   cd your-repo-name
+   git clone https://github.com/md-reyad/fastApi-chat.git
+   cd fastApi-chat
    ```
 
 2. Create a virtual environment:
@@ -52,9 +52,6 @@ uvicorn main:app --reload
 
 The API will be available at http://localhost:8000
 
-API documentation is automatically generated and available at:
-- http://localhost:8000/docs (Swagger UI)
-- http://localhost:8000/redoc (ReDoc)
 
 ## Project Structure
 
@@ -118,7 +115,7 @@ Response:
 ```json
 {
   "id": "msg_125",
-  "content": "FastAPI is a modern, fast web framework for building APIs with Python 3.7+ based on standard Python type hints. It's designed to be easy to use and high performance.",
+  "content": "Fundednext is a platform for startups to get funded.",
   "role": "assistant",
   "timestamp": "2023-11-15T14:32:05Z",
   "metadata": {
